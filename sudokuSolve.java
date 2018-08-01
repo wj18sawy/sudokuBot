@@ -148,7 +148,7 @@ public class sudokuSolve {
 	 * @param r row being checked 
 	 * @param c column being checked
 	 * @param num number being checked for validity in grid[r][c]
-	 * @return
+	 * @return boolean describing whether or not the number is valid in the chosen block
 	 */
 	public boolean numWork(int r, int c, int num)
 	{
