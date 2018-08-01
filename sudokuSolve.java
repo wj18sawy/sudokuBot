@@ -116,8 +116,8 @@ public class sudokuSolve {
 					return false;//if not must backtrack
 				}	
 			}
-			else { //an invalid puzzle was inputed
-				System.out.println("Puzzle inputed isn't valid");
+			else { //invalid puzzle
+				System.out.println("Input puzzle isn't valid");
 				System.exit(0);
 				return false;
 			}
