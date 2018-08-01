@@ -16,7 +16,7 @@ import java.util.Map;
  * If the input file is named "newpuzzle.txt", the output file will be named newpuzzle.sln.txt.
  * 
  * @author Wyatt Sawyer
- * @version 7/31/18
+ * @version 8/1/18
  *
  */
 public class sudokuSolve {
