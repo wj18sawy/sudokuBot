@@ -13,7 +13,7 @@ import java.util.Map;
 
 /**
  * The sudokuSolve program reads in a text file containing an unsolved Sudoku file and creates a new text file of this puzzle solved.  
- * If the inputed file is named "newpuzzle.txt" the outputed file will be named newpuzzle.sln.txt.
+ * If the input file is named "newpuzzle.txt", the output file will be named newpuzzle.sln.txt.
  * 
  * @author Wyatt Sawyer
  * @version 7/31/18
@@ -24,7 +24,6 @@ public class sudokuSolve {
 	public final boolean DEBUG = false; //final variable used for debugging program
 	public int[][] grid; //2D array representing original unsolved puzzle
 	public BufferedReader br;
-	public Map<String, Boolean> originalNum; //hashmap to keep track of numbers from original unsolved puzzle (can't be changed)
 	
 
 	/**
@@ -49,22 +48,22 @@ public class sudokuSolve {
 		
 		//initialize instance variables for 2D array of puzzle and hashmap of unchangeable values
 		grid = new int[9][9];
-		originalNum = new HashMap<String, Boolean>();
 
 		//file is read in and fillGrid() method is called to fill 2D array with the unsolved puzzle's values
 		File file = new File(fileName);
 		br = new BufferedReader(new FileReader(file));
 		fillGrid();
 		
-		//now call checking methods to solve the puzzle in grid 
-		boolean result = check();
-		if(!result)
+		//call recursive method to solve the puzzle in grid 
+		boolean result = recursiveCheck(0,0);
+		if(!result)//if puzzle couldn't be solved
 		{
-			System.out.println("Puzzle unsolvable");
+			System.out.println("Puzzle '"+ fileName + "' unsolvable");
 		}
-		else
+		else//puzzle solved
 		{
 			String name = fileName.substring(0, fileName.length()-3);//removes the txt from the filename
+			System.out.println("Puzzle solved, look for file '" + name + "sln.txt'");
 			File sln = new File(name + "sln.txt");
 			  
 			//Create the file
@@ -86,63 +85,71 @@ public class sudokuSolve {
 		
 	}
 	
-	public boolean check(){
-	
-		return recursiveCheck(0,0);
-	}
-	
 	/**
+	 * recursiveCheck method continuously calls itself to fill in the solved puzzle. If it hits a road block it will backtrack and 
+	 * change the previous blocks number. This method will return true once a final solution is solved or false if there is no solution. 
 	 * 
-	 * @param a
-	 * @param r
-	 * @param c
-	 * @param direction exists because when skipping over a number from the original puzzle we need to know which direction we're going (retracing steps (-1) or advancing(1)) 
-	 * @return
+	 * @param r parameter is to keep track of row number
+	 * @param c parameter is to keep track of column number
+	 * @return boolean value whether this recursive path is the correct solve for the puzzle
 	 */
 	public boolean recursiveCheck(int r, int c){
-		//first find what the next r & c values would be
+		//find what the next r & c values would be so the next call can be made
 		int nxtR=r;
 		int nxtC=c;
-		if(c==8)
+		if(c==8)//if in last block of the row, row must increase and column must be at the start of the row
 		{
 			nxtR++;
 			nxtC = 0;
 		}
-		else nxtC++;
+		else nxtC++;//else just move to next column in the same row
 		
-		//if done
-		if(r>8) {
+		if(r>8) { //if the puzzle is solved
 			return true;
 		}
-		//if skipping number
-		else if(originalNum.containsKey(Integer.toString(r) + ", " + Integer.toString(c))){
-			if(recursiveCheck(nxtR,nxtC)){
-				return true;
+		else if(grid[r][c]!=0){ //if block has a number from the original solved puzzle
+			if(numWork(r,c,grid[r][c])) {//if block from original puzzle is valid
+				if(recursiveCheck(nxtR,nxtC)){//check if the rest of the puzzle can be solved from this current grid
+					return true;
+				}
+				else {
+					return false;//if not must backtrack
+				}	
 			}
-			else {
+			else { //an invalid puzzle was inputed
+				System.out.println("Puzzle inputed isn't valid");
+				System.exit(0);
 				return false;
-			}	
+			}
 		}
 		else {
-			for(int i = 1; i <=9; i++)
+			for(int i = 1; i <=9; i++)//loop through every possible number for the block
 			{
-				if(numWork(r,c,i)) {
-					grid[r][c] = i;
+				if(numWork(r,c,i)) {//if number is temporarily valid
+					grid[r][c] = i;//set the block to this number
 					
-					if(recursiveCheck(nxtR,nxtC)) {
+					if(recursiveCheck(nxtR,nxtC)) {//check if the rest of the puzzle can be solved from this current grid
 						return true;
 					}
-					else {
+					else { //if not set the block back to blank (0) and try the next number in loop
 						grid[r][c] = 0;
 						continue;
 					}
 				}
 			}
-			return false;
+			return false;//no numbers fit in the block, so must backtrack
 		}
 		
 	}
 	
+	/**
+	 * numWork method checks if a number will be valid in a certain block of the puzzle.
+	 * 
+	 * @param r row being checked 
+	 * @param c column being checked
+	 * @param num number being checked for validity in grid[r][c]
+	 * @return
+	 */
 	public boolean numWork(int r, int c, int num)
 	{
 		
@@ -155,13 +162,15 @@ public class sudokuSolve {
 		for(int j = 0; j<9; j++) {//check and make sure this number i isn't in the row
 			if(grid[r][j] == num)
 			{
-				return false;
+				if(DEBUG)System.out.print("numWork false bc match in row");
+				if(j!=c)return false;
 			}
 		}
 		for(int j = 0; j<9; j++) {//check and make sure this number i isn't in the column
 			if(grid[j][c] == num)
 			{
-				return false;
+				if(DEBUG)System.out.print("numWork false bc match in col");
+				if(j!=r)return false;
 			}
 		}
 		//check and make sure this number i isn't in the 3x3 grid (4 spots still unchecked)
@@ -169,12 +178,13 @@ public class sudokuSolve {
 		int row = r%3;
 		int col = c%3;
 		
+		//needed checks are always same distances away for r,c if you imagine only a 3x3 grid where the row and columns wrap around
 		//row-1 & col-1
 		int tempRow = row-1;
 		tempRow = (((tempRow % 3) + 3) % 3);//calculation done as such because in Java, % returns remainder so the % won't give the modulus for negative numbers 
 		int tempCol = col-1;
 		tempCol = (((tempCol % 3) + 3) % 3);
-		int actualRow = tempRow+rowAddition;
+		int actualRow = tempRow+rowAddition;//move to correct 3x3 square on the grid for the check
 		int actualCol = tempCol+colAddition;
 		if(grid[actualRow][actualCol] == num)return false;
 		
@@ -218,13 +228,12 @@ public class sudokuSolve {
 				if(st.charAt(i) != 'X') { //if spot in puzzle isn't a blank
 					int val = Character.getNumericValue(st.charAt(i));
 					grid[tempRowNum][i] = val;//set this spot in the grid to be equal to the puzzle text file
-					originalNum.put(Integer.toString(tempRowNum) + ", " + Integer.toString(i), true);//creates a mapping for row, col so we know this is a number from original puzzle
 				}
 			}
 			tempRowNum++;		
 		}
 		
-		if(DEBUG)System.out.println(Arrays.deepToString(grid));
+		if(DEBUG)System.out.println(Arrays.deepToString(grid));		
 
 	}
 }
