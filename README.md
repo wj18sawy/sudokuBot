@@ -22,4 +22,5 @@ In the Repository are 5 puzzle text files and their solutions. So for example yo
 ## Credits
 Developed by Wyatt Sawyer for Gavant Software project. Puzzles and instructions were created by Gavant Software. 
 
-[Wyatt Sawyer]()
+[Wyatt Sawyer LinkedIn](https://www.linkedin.com/in/wyattsawyer/)
+[wj18sawy GitHub](https://github.com/wj18sawy)
