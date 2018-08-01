@@ -3,13 +3,8 @@ This project takes in a txt file with an unsolved puzzle and returns the solved 
 
 ## Motivation
 Coding project for Gavant Software
- 
-## Screenshots
-Include logo/demo screenshot etc.
 
 ## Tech/framework used
-Ex. -
-
 <b>Built with</b>
 - [Eclipse Oxygen](https://www.eclipse.org/oxygen/)
 
