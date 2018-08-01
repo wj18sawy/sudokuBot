@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class sudokuSolve {
 	
-	public final boolean DEBUG = true; //final variable used for debugging program
+	public final boolean DEBUG = false; //final variable used for debugging program
 	public int[][] grid; //2D array representing original unsolved puzzle
 	public BufferedReader br;
 	public Map<String, Boolean> originalNum; //hashmap to keep track of numbers from original unsolved puzzle (can't be changed)
@@ -68,7 +68,7 @@ public class sudokuSolve {
 			File sln = new File(name + "sln.txt");
 			  
 			//Create the file
-			file.createNewFile();
+			sln.createNewFile();
 			 
 			//Write in solved puzzle
 			FileWriter fw = new FileWriter(sln);
@@ -87,6 +87,7 @@ public class sudokuSolve {
 	}
 	
 	public boolean check(){
+	
 		return recursiveCheck(0,0);
 	}
 	
@@ -144,16 +145,7 @@ public class sudokuSolve {
 	
 	public boolean numWork(int r, int c, int num)
 	{
-		if(DEBUG) System.out.print("----> At " + r + " " + c);
-		if(DEBUG)System.out.println(" Puzzle is currently...");
-		if(DEBUG) {
-			for(int i= 0; i<9;i++) {
-				for(int j= 0; j<9; j++){
-					System.out.print(grid[i][j]);
-				}
-				System.out.println();
-			}
-		}		
+		
 		//need to determine what change must be added to tempRow&Col depending on which 3x3 grid our spot is in to correctly to make checks
 		int rowAddition = (int) Math.floor(r/3)*3;
 		int colAddition = (int) Math.floor(c/3)*3;
@@ -210,7 +202,6 @@ public class sudokuSolve {
 		//if still in loop, num is a temporary valid fit for the puzzle
 		return true;
 		
-
 	}
 	
 	/**
