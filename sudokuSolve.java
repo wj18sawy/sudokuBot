@@ -84,12 +84,10 @@ public class sudokuSolve {
 
 		}
 		
-		//findFirstPossNum debug
-		if(DEBUG)System.out.print(findFirstPossNum(0,0));
 	}
 	
 	public boolean check(){
-		return recursiveCheck(0,0,1);
+		return recursiveCheck(0,0);
 	}
 	
 	/**
@@ -100,60 +98,51 @@ public class sudokuSolve {
 	 * @param direction exists because when skipping over a number from the original puzzle we need to know which direction we're going (retracing steps (-1) or advancing(1)) 
 	 * @return
 	 */
-	public boolean recursiveCheck(int r, int c, int direction){
-		boolean skip = false; //keep track of if this number is part of original puzzle
-		boolean result;
-
-		skip = originalNum.containsKey(Integer.toString(r) + ", " + Integer.toString(c));//see if this is original number
-		if(skip) {//need to pass this number
-			int thisR = r;
-			int thisC = c + direction;
-			
-			if(thisC>8) {//if we need to go to next row
-				thisR++;
-				thisC=0;
-			}
-			else if(thisC<0) { //if we need to go to previous row
-				thisR--;
-				thisC=8;
-			}
-			
-			result = recursiveCheck(thisR, thisC, direction);
+	public boolean recursiveCheck(int r, int c){
+		//first find what the next r & c values would be
+		int nxtR=r;
+		int nxtC=c;
+		if(c==8)
+		{
+			nxtR++;
+			nxtC = 0;
 		}
-		else {
-			int possNum = findFirstPossNum(r,c); //find the first possible number that could fit in our spot
-			
-			if(possNum == 0) { //if no possible number exists, one of the previous changes to the puzzle must be incorrect so we must go back
-				int thisR;//used to check hashmap originalNum, and make next call to recursiveCheck
-				int thisC;
-				if(c == 0) {
-					thisR = r-1;
-					thisC = 8;
-				}
-				else {
-					thisR = r;
-					thisC = c-1;
-				}
-	
-				grid[r][c] = 0;
-				result = recursiveCheck(thisR, thisC, -1);//direction is -1 because we're retracing 
-			}
-			else if(r==8 && c==8) {//last spot (base case) recursion finished
-				grid[8][8] = possNum;
-				result = true;
+		else nxtC++;
+		
+		//if done
+		if(r>8) {
+			return true;
+		}
+		//if skipping number
+		else if(originalNum.containsKey(Integer.toString(r) + ", " + Integer.toString(c))){
+			if(recursiveCheck(nxtR,nxtC)){
+				return true;
 			}
 			else {
-				grid[r][c] = possNum;
-				if(c == 8) result = recursiveCheck(r+1, 0, 1); //if at end of the row we need to go down a row and start at the first column
-				else result = recursiveCheck(r, c+1, 1);
+				return false;
+			}	
+		}
+		else {
+			for(int i = 1; i <=9; i++)
+			{
+				if(numWork(r,c,i)) {
+					grid[r][c] = i;
+					
+					if(recursiveCheck(nxtR,nxtC)) {
+						return true;
+					}
+					else {
+						grid[r][c] = 0;
+						continue;
+					}
+				}
 			}
+			return false;
 		}
 		
-
-		return result;
 	}
 	
-	public int findFirstPossNum(int r, int c)
+	public boolean numWork(int r, int c, int num)
 	{
 		if(DEBUG) System.out.print("----> At " + r + " " + c);
 		if(DEBUG)System.out.println(" Puzzle is currently...");
@@ -164,79 +153,64 @@ public class sudokuSolve {
 				}
 				System.out.println();
 			}
-		}
-
-		int possNum = 0;
-		int current = grid[r][c];
-		if(DEBUG) System.out.println("Current is " + current);
-		
+		}		
 		//need to determine what change must be added to tempRow&Col depending on which 3x3 grid our spot is in to correctly to make checks
 		int rowAddition = (int) Math.floor(r/3)*3;
 		int colAddition = (int) Math.floor(c/3)*3;
 
-		for(int i = current+1; i<=9 ; i++)//for every possible number it could be
-		{
-			if(DEBUG) System.out.print(" Trying " + i);
-			boolean works = true;
-			for(int j = 0; j<9; j++) {//check and make sure this number i isn't in the row
-				if(grid[r][j] == i)
-				{
-					works = false;
-					break;
-				}
+		
+		if(DEBUG) System.out.print(" Trying " + num);
+		for(int j = 0; j<9; j++) {//check and make sure this number i isn't in the row
+			if(grid[r][j] == num)
+			{
+				return false;
 			}
-			if(!works)continue;
-			for(int j = 0; j<9; j++) {//check and make sure this number i isn't in the column
-				if(grid[j][c] == i)
-				{
-					works = false;
-					break;
-				}
-			}
-			if(!works)continue;
-			//check and make sure this number i isn't in the 3x3 grid (4 spots still unchecked)
-			//need to know what spot in it's 3x3 grid it is to make the checks
-			int row = r%3;
-			int col = c%3;
-			
-			//row-1 & col-1
-			int tempRow = row-1;
-			tempRow = (((tempRow % 3) + 3) % 3);//calculation done as such because in Java, % returns remainder so the % won't give the modulus for negative numbers 
-			int tempCol = col-1;
-			tempCol = (((tempCol % 3) + 3) % 3);
-			int actualRow = tempRow+rowAddition;
-			int actualCol = tempCol+colAddition;
-			if(grid[actualRow][actualCol] == i)continue;
-			
-			//row-1 & col-2
-			tempCol = col-2;
-			tempCol = (((tempCol % 3) + 3) % 3);
-			actualRow = tempRow+rowAddition;
-			actualCol = tempCol+colAddition;
-			if(grid[actualRow][actualCol] == i)continue;
-			
-			//row-2 & col-2
-			tempRow = row-2;
-			tempRow = (((tempRow % 3) + 3) % 3);
-			actualRow = tempRow+rowAddition;
-			actualCol = tempCol+colAddition;
-			if(grid[actualRow][actualCol] == i)continue;
-			
-			//row-2 & col-1
-			tempCol = col-1;
-			tempCol = (((tempCol % 3) + 3) % 3);
-			actualRow = tempRow+rowAddition;
-			actualCol = tempCol+colAddition;
-			if(grid[actualRow][actualCol] == i)continue;
-			
-			//if still in loop this number i is a temporory fit for our puzzle
-			possNum = i;
-			break;
 		}
-		if(DEBUG) System.out.println(" Returning " + possNum);
+		for(int j = 0; j<9; j++) {//check and make sure this number i isn't in the column
+			if(grid[j][c] == num)
+			{
+				return false;
+			}
+		}
+		//check and make sure this number i isn't in the 3x3 grid (4 spots still unchecked)
+		//need to know what spot in it's 3x3 grid it is to make the checks
+		int row = r%3;
+		int col = c%3;
+		
+		//row-1 & col-1
+		int tempRow = row-1;
+		tempRow = (((tempRow % 3) + 3) % 3);//calculation done as such because in Java, % returns remainder so the % won't give the modulus for negative numbers 
+		int tempCol = col-1;
+		tempCol = (((tempCol % 3) + 3) % 3);
+		int actualRow = tempRow+rowAddition;
+		int actualCol = tempCol+colAddition;
+		if(grid[actualRow][actualCol] == num)return false;
+		
+		//row-1 & col-2
+		tempCol = col-2;
+		tempCol = (((tempCol % 3) + 3) % 3);
+		actualRow = tempRow+rowAddition;
+		actualCol = tempCol+colAddition;
+		if(grid[actualRow][actualCol] == num)return false;
+		
+		//row-2 & col-2
+		tempRow = row-2;
+		tempRow = (((tempRow % 3) + 3) % 3);
+		actualRow = tempRow+rowAddition;
+		actualCol = tempCol+colAddition;
+		if(grid[actualRow][actualCol] == num)return false;
+		
+		//row-2 & col-1
+		tempCol = col-1;
+		tempCol = (((tempCol % 3) + 3) % 3);
+		actualRow = tempRow+rowAddition;
+		actualCol = tempCol+colAddition;
+		if(grid[actualRow][actualCol] == num)return false;
+		
+		//if still in loop, num is a temporary valid fit for the puzzle
+		return true;
+		
 
-
-		return possNum;
 	}
 	
 	/**
